@@ -25,8 +25,7 @@ func TestUserRepository_FindByLogin(t *testing.T) {
 
 	s := sqlstore.New(db)
 	login := "login"
-	d, err := s.User().FindByLogin(login)
-	print(d)
+	_, err := s.User().FindByLogin(login)
 	assert.EqualError(t, err, store.ErrRecordNotFound.Error())
 
 	u := model.TestUser(t)
