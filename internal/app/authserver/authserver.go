@@ -17,6 +17,9 @@ func Start(config *Config) error {
 	defer db.Close()
 	store := sqlstore.New(db)
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
+	sessionStore.Options = &sessions.Options{
+		MaxAge: 86400,
+	}
 	s := newServer(store, sessionStore)
 
 	return http.ListenAndServe(config.BindAddr, s)

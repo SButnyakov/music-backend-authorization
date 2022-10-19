@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	sessionName        = "session_name"
+	sessionName        = "music_auth_cookie"
 	ctxKeyUser  ctxKey = iota
 	ctxKeyRequestId
 )
