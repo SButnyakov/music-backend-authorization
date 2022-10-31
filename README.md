@@ -1,8 +1,9 @@
 # music-backend-authorization
 
-> build:
+> build and run:
 ```
 go build cmd/authserver/main.go
+./main
 ```
 
 > run:
