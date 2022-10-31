@@ -19,6 +19,8 @@ func Start(config *Config) error {
 	sessionStore := sessions.NewCookieStore([]byte(config.SessionKey))
 	sessionStore.Options = &sessions.Options{
 		MaxAge: 86400,
+		SameSite: 4, // None
+		Secure: true,
 	}
 	s := newServer(store, sessionStore)
 

@@ -27,3 +27,9 @@ require (
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8
 	gopkg.in/yaml.v3 v3.0.1
 )
+
+require (
+	github.com/VojtechVitek/samesite v0.0.3 // indirect
+	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1 // indirect
+	github.com/rs/cors v1.8.2 // indirect
+)
