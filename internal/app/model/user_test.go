@@ -63,6 +63,14 @@ func TestUser_Validate(t *testing.T) {
 			},
 			isValid: false,
 		},
+		{
+			name: "no stage name",
+			u: func() *model.User {
+				u := model.TestUser(t)
+				u.StageName = ""
+				return u
+			},
+		},
 	}
 
 	for _, tc := range testCases {

@@ -133,6 +133,7 @@ func (s *server) handleUsersCreate() http.HandlerFunc {
 	type request struct {
 		Login    string `json:"login"`
 		Password string `json:"password"`
+		StageName string `json:"stage_name"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -152,6 +153,7 @@ func (s *server) handleUsersCreate() http.HandlerFunc {
 		u := &model.User{
 			Login:    req.Login,
 			Password: req.Password,
+			StageName: req.StageName,
 		}
 
 		if err := s.store.User().Create(u); err != nil {

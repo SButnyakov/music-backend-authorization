@@ -11,13 +11,15 @@ type User struct {
 	Login             string `json:"login"`
 	Password          string `json:"password,omitempty"`
 	EncryptedPassword string `json:"-"`
+  StageName 			  string `json:"stage_name"`
 }
 
 func (u *User) Validate() error {
 	return validation.ValidateStruct(
 		u,
 		validation.Field(&u.Login, validation.Required, is.UTFLetterNumeric),
-		validation.Field(&u.Password, validation.By(requiredIf(u.EncryptedPassword == "")), validation.Length(6, 100)))
+		validation.Field(&u.Password, validation.By(requiredIf(u.EncryptedPassword == "")), validation.Length(6, 100)),
+		validation.Field(&u.StageName, validation.Required, validation.Length(1, 60)))
 }
 
 func (u *User) BeforeCreate() error {
