@@ -55,7 +55,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *server) configureRouter() {
 	s.router.Use(s.setRequestID)
 	s.router.Use(s.logRequest)
-	s.router.HandleFunc("/users", s.handleUsersCreate()).Methods(http.MethodPost)
+	s.router.HandleFunc("/users", s.handleUsersCreate()).Methods(http.MethodPost, http.MethodOptions)
 	s.router.HandleFunc("/sessions", s.handleSessionsCreate()).Methods(http.MethodPost, http.MethodOptions)
 	s.router.Use(mux.CORSMethodMiddleware(s.router))
 
@@ -91,6 +91,12 @@ func (s *server) logRequest(next http.Handler) http.Handler {
 			http.StatusText(rw.code),
 			time.Now().Sub(start))
 	})
+}
+
+func (s *server) prepareHeaders(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "http://localhost")
+	(*w).Header().Set("Access-Control-Allow-Credentials", "true")
+	(*w).Header().Set("Access-Control-Allow-Headers", "access-control-allow-credentials,access-control-allow-origin,content-type")
 }
 
 func (s *server) authenticateUser(next http.Handler) http.Handler {
@@ -130,6 +136,13 @@ func (s *server) handleUsersCreate() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		s.prepareHeaders(&w)
+
+		if r.Method == http.MethodOptions {
+			s.respond(w, r, http.StatusOK, nil)
+			return
+		}
+
 		req := &request{}
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
@@ -158,15 +171,14 @@ func (s *server) handleSessionsCreate() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Allow-Headers", "access-control-allow-credentials,access-control-allow-origin,content-type")
-		req := &request{}
+		s.prepareHeaders(&w)
 
 		if r.Method == http.MethodOptions {
 			s.respond(w, r, http.StatusOK, nil)
 			return
 		}
+
+		req := &request{}
 
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
