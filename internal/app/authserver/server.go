@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/SButnyakov/music-backend-authorization/internal/app/model"
@@ -59,6 +61,7 @@ func (s *server) configureRouter() {
 	s.router.HandleFunc("/sessions", s.handleSessionsCreate()).Methods(http.MethodPost, http.MethodOptions)
 	s.router.HandleFunc("/updateCookie", s.handleCookieUpdate()).Methods(http.MethodPost, http.MethodOptions)
 	s.router.HandleFunc("/checkCookie", s.handleCookieCheck()).Methods(http.MethodPost, http.MethodOptions)
+	s.router.HandleFunc("/users/{id}", s.handleUserById()).Methods(http.MethodGet, http.MethodOptions)
 	s.router.Use(mux.CORSMethodMiddleware(s.router))
 
 	private := s.router.PathPrefix("/private").Subrouter()
@@ -128,6 +131,35 @@ func (s *server) authenticateUser(next http.Handler) http.Handler {
 func (s *server) handleWhoami() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		s.respond(w, r, http.StatusOK, r.Context().Value(ctxKeyUser).(*model.User))
+	}
+}
+
+func (s *server) handleUserById() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s.prepareHeaders(&w)
+
+		if r.Method == http.MethodOptions {
+			s.respond(w, r, http.StatusOK, nil)
+			return
+		}
+
+		paramId := mux.Vars(r)["id"]
+
+		id, err := strconv.Atoi(paramId)
+		if err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+		
+		u, err := s.store.User().Find(id)
+		if err != nil {
+			s.error(w, r, http.StatusNoContent, err)
+			return
+		}
+
+		fmt.Println("OK")
+
+		s.respond(w, r, http.StatusOK, u)
 	}
 }
 
