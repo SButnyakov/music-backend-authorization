@@ -21,23 +21,25 @@ func (r *UserRepository) Create(u *model.User) error {
 	}
 
 	return r.store.db.QueryRow(
-		"INSERT INTO users (login, encrypted_password, stage_name) OUTPUT Inserted.id VALUES (@p1, @p2, @p3)",
+		"INSERT INTO users (login, encrypted_password, stage_name, cookie) OUTPUT Inserted.id VALUES (@p1, @p2, @p3, @p4)",
 		u.Login,
 		u.EncryptedPassword,
-		u.StageName).
-		Scan(&u.ID)
+		u.StageName,
+		u.AuthCookie,
+		).Scan(&u.ID)
 }
 
 func (r *UserRepository) FindByLogin(login string) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
-		"SELECT id, login, encrypted_password, stage_name FROM users WHERE login = @p1",
+		"SELECT id, login, encrypted_password, stage_name, cookie FROM users WHERE login = @p1",
 		login,
 	).Scan(
 		&u.ID,
 		&u.Login,
 		&u.EncryptedPassword,
 		&u.StageName,
+		&u.AuthCookie,
 	); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.ErrRecordNotFound
@@ -52,13 +54,14 @@ func (r *UserRepository) FindByLogin(login string) (*model.User, error) {
 func (r *UserRepository) Find(id int) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
-		"SELECT id, login, encrypted_password, stage_name FROM users WHERE id = @p1",
+		"SELECT id, login, encrypted_password, stage_name, cookie FROM users WHERE id = @p1",
 		id,
 	).Scan(
 		&u.ID,
 		&u.Login,
 		&u.EncryptedPassword,
 		&u.StageName,
+		&u.AuthCookie,
 	); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.ErrRecordNotFound
@@ -68,4 +71,15 @@ func (r *UserRepository) Find(id int) (*model.User, error) {
 	}
 
 	return u, nil
+}
+
+func (r *UserRepository) UpdateCookie(login string, cookie string) error {
+	if err := r.store.db.QueryRow(
+		"UPDATE users SET cookie = @p2 WHERE login = @p1",
+		login,
+		cookie,
+		); err != nil {
+		return err.Err()
+	}
+	return nil
 }

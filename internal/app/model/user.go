@@ -12,6 +12,7 @@ type User struct {
 	Password          string `json:"password,omitempty"`
 	EncryptedPassword string `json:"-"`
   StageName 			  string `json:"stage_name"`
+	AuthCookie 				string `json:"music_auth_cookie"`
 }
 
 func (u *User) Validate() error {

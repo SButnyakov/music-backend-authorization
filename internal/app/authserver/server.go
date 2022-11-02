@@ -57,6 +57,7 @@ func (s *server) configureRouter() {
 	s.router.Use(s.logRequest)
 	s.router.HandleFunc("/users", s.handleUsersCreate()).Methods(http.MethodPost, http.MethodOptions)
 	s.router.HandleFunc("/sessions", s.handleSessionsCreate()).Methods(http.MethodPost, http.MethodOptions)
+	s.router.HandleFunc("/updateCookie", s.handleCookieUpdate()).Methods(http.MethodPost, http.MethodOptions)
 	s.router.Use(mux.CORSMethodMiddleware(s.router))
 
 	private := s.router.PathPrefix("/private").Subrouter()
@@ -154,6 +155,7 @@ func (s *server) handleUsersCreate() http.HandlerFunc {
 			Login:    req.Login,
 			Password: req.Password,
 			StageName: req.StageName,
+			AuthCookie: " ",
 		}
 
 		if err := s.store.User().Create(u); err != nil {
@@ -206,6 +208,36 @@ func (s *server) handleSessionsCreate() http.HandlerFunc {
 		}
 
 		s.respond(w, r, http.StatusOK, u.ID)
+	}
+}
+
+func (s *server) handleCookieUpdate() http.HandlerFunc {
+	type request struct {
+		Login    string `json:"login"`
+		Cookie   string `json:"auth_cookie"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		s.prepareHeaders(&w)
+
+		if r.Method == http.MethodOptions {
+			s.respond(w, r, http.StatusOK, nil)
+			return
+		}
+
+		req := &request{}
+
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+
+		if err := s.store.User().UpdateCookie(req.Login, req.Cookie); err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		s.respond(w, r, http.StatusOK, nil)
 	}
 }
 
