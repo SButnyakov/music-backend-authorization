@@ -51,6 +51,25 @@ func (r *UserRepository) FindByLogin(login string) (*model.User, error) {
 	return u, nil
 }
 
+func (r *UserRepository) FindByCookie(cookie string) (*model.User, error) {
+	u := &model.User{}
+	if err := r.store.db.QueryRow(
+		"SELECT id, stage_name FROM users WHERE cookie = @p1",
+		cookie,
+	).Scan(
+		&u.ID,
+		&u.StageName,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.ErrRecordNotFound
+		}
+
+		return nil, err
+	}
+
+	return u, nil
+}
+
 func (r *UserRepository) Find(id int) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
